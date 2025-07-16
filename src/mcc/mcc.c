@@ -7,9 +7,10 @@
 #include <stdint.h>
 #include <unistd.h>
 #include <fcntl.h>
+
+#include "parser.h"
 #include "lexer.h"
 #include "vm.h"
-#include "parser.h"
 
 /**
  * 读取文件

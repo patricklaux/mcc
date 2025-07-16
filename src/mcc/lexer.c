@@ -3,6 +3,7 @@
 //
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <malloc.h>
 
@@ -44,7 +45,7 @@ void lexer_init(Lexer *lexer, char *source) {
     lexer->tokens = malloc(sizeof(Token) * lexer->t_capacity);
     if (lexer->tokens == NULL) {
         printf("tokens: malloc memory failed.");
-        exit(-2);
+        exit(-1);
     }
 }
 

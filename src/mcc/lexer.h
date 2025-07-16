@@ -5,7 +5,6 @@
 #ifndef MCC_LEXER_H
 #define MCC_LEXER_H
 
-#include <corecrt.h>
 
 // token 类型
 typedef enum {

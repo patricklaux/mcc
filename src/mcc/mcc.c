@@ -7,6 +7,7 @@
 #include <memory.h>
 #include <stdint.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include "lexer.h"
 #include "vm.h"
 #include "parser.h"
@@ -30,9 +31,9 @@ char *read_file(const char *filename, const size_t pool_size) {
         printf("could not malloc(%lld) source area\n", pool_size);
         exit(-1);
     }
-    int length;
+    ssize_t length;
     if ((length = read(fd, source, pool_size - 1)) <= 0) {
-        printf("read() returned %d\n", length);
+        printf("read() returned %ld\n", length);
         exit(-1);
     }
     source[length] = 0; //字符串结尾置0

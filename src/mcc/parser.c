@@ -5,10 +5,10 @@
 #include <malloc.h>
 #include <memory.h>
 #include <stdio.h>
-#include "parser.h"
-
+#include <stdlib.h>
 #include <string.h>
 
+#include "parser.h"
 #include "vm.h"
 
 /**
@@ -505,12 +505,13 @@ void parse_expr(Parser *parser, const int level, const int bp_index) {
             *++parser->text = parser->expr_type == CHAR ? SC : SI;
         } else if (token->kind == TK_CONDITION) {
             // 条件表达式 expr ? a : b;
-            token = advance_tk(parser);
+            advance_tk(parser);
             *++parser->text = JZ;
             int64_t *addr = ++parser->text;
             parse_expr(parser, TK_ASSIGN, bp_index);
+            token = peek_tk(parser, parser->t_index);
             if (token->kind == TK_COLON) {
-                token = advance_tk(parser);
+                advance_tk(parser);
             } else {
                 printf("%lld: missing colon in conditional\n", token->line);
                 exit(-1);

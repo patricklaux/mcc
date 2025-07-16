@@ -5,8 +5,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <memory.h>
-#include <dir.h>
+#include <fcntl.h>
+#include <unistd.h>
+
 #include "vm.h"
+
 
 /**
  * @brief 初始化虚拟机

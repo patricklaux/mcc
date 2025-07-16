@@ -9,6 +9,6 @@ int add(int a, int b) {
 int main() {
     int d;
     d = add(1, 2);
-    printf("result: %d", d);
+    printf("result: %d\n", d);
     return 0;
 }

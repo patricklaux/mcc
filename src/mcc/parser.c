@@ -96,7 +96,7 @@ void add_sys_calls(Parser *parser, const char *name, const int value) {
 /**
  * @brief 词法单元类型断言
  * @param expected 期望类型
- * @param actual 真实类型
+ * @param actual 实际类型
  */
 void assert(const TokenKind expected, const TokenKind actual) {
     if (expected != actual) {

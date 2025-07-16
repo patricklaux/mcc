@@ -446,7 +446,7 @@ void number(Lexer *lexer) {
 
     char *lexeme = substr(lexer->source, start, count);
     if (invalid) {
-        printf("line:%lld, Invalid number: %s", lexer->line, lexeme);
+        printf("line:%ld, Invalid number: %s", lexer->line, lexeme);
         exit(-1);
     }
     add(lexer, TK_NUMBER, lexeme);

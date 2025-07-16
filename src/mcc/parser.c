@@ -112,14 +112,14 @@ void assert(const TokenKind expected, const TokenKind actual) {
 void print_src(Parser *parser) {
     if (parser->src) {
         //命令行指明-s参数,输出源代码和对应字节码
-        printf("%lld:\n", parser->line);
+        printf("%ld:\n", parser->line);
         while (parser->l_text < parser->text) {
             printf("%8.4s", &"LEA ,IMM ,JMP ,JSR ,JZ  ,JNZ ,ENT ,ADJ ,LEV ,LI  ,LC  ,SI  ,SC  ,PUSH,"
                    "OR  ,XOR ,AND ,EQ  ,NE  ,LT  ,GT  ,LE  ,GE  ,SHL ,SHR ,ADD ,SUB ,MUL ,DIV ,MOD ,"
                    "OPEN,READ,CLOS,PRTF,MALC,MSET,MCMP,EXIT,"[*++parser->l_text * 5]);
             if (*parser->l_text <= ADJ) {
                 //ADJ之前的指令均有操作数
-                printf(" %lld\n", *++parser->l_text);
+                printf(" %ld\n", *++parser->l_text);
             } else {
                 printf("\n");
             }
@@ -194,7 +194,7 @@ int get_basetype(const Token *token) {
         // void 当作 char 处理
         return CHAR;
     }
-    printf("line:%lld, unsupported datatype %s\n", token->line, token->lexeme);
+    printf("line:%ld, unsupported datatype %s\n", token->line, token->lexeme);
     exit(-1);
 }
 
@@ -256,7 +256,7 @@ Symbol *find_symbol_g_l(const Parser *parser, const Token *token, const int hash
  */
 void check_symbol(Symbol *symbols, const size_t size, const Token *token, const int hash) {
     if (find_symbol(symbols, size, token, hash)) {
-        printf("line:%lld, duplicate definition of %s\n", token->line, token->lexeme);
+        printf("line:%ld, duplicate definition of %s\n", token->line, token->lexeme);
         exit(-1);
     }
 }
@@ -320,7 +320,7 @@ void parse_expr(Parser *parser, const int level, const int bp_index) {
             // 函数：仅查找全局符号表
             const Symbol *symbol = find_symbol(parser->g_symbols, parser->g_size, id, hash);
             if (symbol == NULL) {
-                printf("line:%lld, undefined function %s\n", id->line, id->lexeme);
+                printf("line:%ld, undefined function %s\n", id->line, id->lexeme);
                 exit(-1);
             }
             token = advance_tk(parser);
@@ -356,7 +356,7 @@ void parse_expr(Parser *parser, const int level, const int bp_index) {
             // 先查找本地符号表，后查找全局符号表
             const Symbol *symbol = find_symbol_g_l(parser, id, hash);
             if (symbol == NULL) {
-                printf("line:%lld, undefined variable %s\n", id->line, id->lexeme);
+                printf("line:%ld, undefined variable %s\n", id->line, id->lexeme);
                 exit(-1);
             }
             if (symbol->class == ENUM) {
@@ -373,7 +373,7 @@ void parse_expr(Parser *parser, const int level, const int bp_index) {
                     *++parser->text = IMM;
                     *++parser->text = symbol->value;
                 } else {
-                    printf("%lld: undefined variable\n", token->line);
+                    printf("%ld: undefined variable\n", token->line);
                     exit(-1);
                 }
                 parser->expr_type = symbol->datatype;
@@ -402,7 +402,7 @@ void parse_expr(Parser *parser, const int level, const int bp_index) {
             parser->expr_type -= PTR;
         } else {
             token = peek_tk(parser, parser->t_index);
-            printf("%lld: bad dereference\n", token->line);
+            printf("%ld: bad dereference\n", token->line);
             exit(-1);
         }
         *++parser->text = parser->expr_type == CHAR ? LC : LI;
@@ -413,7 +413,7 @@ void parse_expr(Parser *parser, const int level, const int bp_index) {
         if (*parser->text == LC || *parser->text == LI) {
             parser->text--;
         } else {
-            printf("%lld: bad address of\n", token->line);
+            printf("%ld: bad address of\n", token->line);
             exit(-1);
         }
         parser->expr_type += PTR;
@@ -469,7 +469,7 @@ void parse_expr(Parser *parser, const int level, const int bp_index) {
             *parser->text = PUSH;
             *++parser->text = LI;
         } else {
-            printf("%lld: bad lvalue of pre-increment\n", token->line);
+            printf("%ld: bad lvalue of pre-increment\n", token->line);
             exit(-1);
         }
         *++parser->text = PUSH; // 3.将 rax 中的值入栈
@@ -478,7 +478,7 @@ void parse_expr(Parser *parser, const int level, const int bp_index) {
         *++parser->text = kind == TK_INC ? ADD : SUB; // 5.执行加法或减法运算，并将结果存入 rax
         *++parser->text = parser->expr_type == CHAR ? SC : SI; // 6.将 rax 中的计算结果存入流程1中入栈的内存地址
     } else {
-        printf("line:%lld: bad expression\n", token->line);
+        printf("line:%ld: bad expression\n", token->line);
         exit(-1);
     }
 
@@ -496,7 +496,7 @@ void parse_expr(Parser *parser, const int level, const int bp_index) {
             if (*parser->text == LC || *parser->text == LI) {
                 *parser->text = PUSH; // save the lvalue's pointer
             } else {
-                printf("%lld: bad lvalue in assignment\n", token->line);
+                printf("%ld: bad lvalue in assignment\n", token->line);
                 exit(-1);
             }
             parse_expr(parser, TK_ASSIGN, bp_index);
@@ -513,7 +513,7 @@ void parse_expr(Parser *parser, const int level, const int bp_index) {
             if (token->kind == TK_COLON) {
                 advance_tk(parser);
             } else {
-                printf("%lld: missing colon in conditional\n", token->line);
+                printf("%ld: missing colon in conditional\n", token->line);
                 exit(-1);
             }
             *addr = (int64_t) (parser->text + 3);
@@ -685,7 +685,7 @@ void parse_expr(Parser *parser, const int level, const int bp_index) {
                 *parser->text = PUSH;
                 *++parser->text = LC;
             } else {
-                printf("%lld: bad value in increment\n", token->line);
+                printf("%ld: bad value in increment\n", token->line);
                 exit(-1);
             }
 
@@ -713,14 +713,14 @@ void parse_expr(Parser *parser, const int level, const int bp_index) {
                 *++parser->text = sizeof(int64_t);
                 *++parser->text = MUL;
             } else if (tmp < PTR) {
-                printf("%lld: pointer type expected\n", token->line);
+                printf("%ld: pointer type expected\n", token->line);
                 exit(-1);
             }
             parser->expr_type = tmp - PTR;
             *++parser->text = ADD;
             *++parser->text = parser->expr_type == CHAR ? LC : LI;
         } else {
-            printf("%lld: compiler error, token = %d\n", token->line, token->kind);
+            printf("%ld: compiler error, token = %d\n", token->line, token->kind);
             exit(-1);
         }
     }
@@ -827,7 +827,7 @@ int parse_function_params(Parser *parser) {
         if (token->kind == TK_COMMA) {
             token = advance_tk(parser);
             if (token->kind == TK_RIGHT_PAREN) {
-                printf("line:%lld bad symbol %s\n", token->line, token->lexeme);
+                printf("line:%ld bad symbol %s\n", token->line, token->lexeme);
                 exit(-1); // 语法异常：逗号之后无参数
             }
         }
@@ -857,7 +857,7 @@ void parse_function_body(Parser *parser, const int bp_index) {
             parser->l_symbols[parser->l_size++] = (Symbol){hash, name, data_type, LOCAL, ++i};
             token = advance_tk(parser);
             if (token->kind != TK_COMMA && token->kind != TK_SEMICOLON) {
-                printf("line:%lld, bad variable declaration:%d\n", token->line, token->kind);
+                printf("line:%ld, bad variable declaration:%d\n", token->line, token->kind);
                 exit(-1);
             }
         }

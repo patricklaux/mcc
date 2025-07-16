@@ -64,12 +64,12 @@ int64_t vm_run(VM *vm) {
         ++cycle;
         if (debug) {
             // 打印当前执行的指令
-            printf("%lld> %.4s", cycle,
+            printf("%ld> %.4s", cycle,
                    &"LEA ,IMM ,JMP ,JSR ,JZ  ,JNZ ,ENT ,ADJ ,LEV ,LI  ,LC  ,SI  ,SC  ,PUSH,"
                    "OR  ,XOR ,AND ,EQ  ,NE  ,LT  ,GT  ,LE  ,GE  ,SHL ,SHR ,ADD ,SUB ,MUL ,DIV ,MOD ,"
                    "OPEN,READ,CLOS,PRTF,MALC,MSET,MCMP,EXIT,"[op * 5]);
             if (op <= ADJ) {
-                printf(" %lld\n", *vm->pc);
+                printf(" %ld\n", *vm->pc);
             } else {
                 printf("\n");
             }
@@ -193,10 +193,10 @@ int64_t vm_run(VM *vm) {
                 vm->rax = memcmp((char *) vm->rsp[2], (char *) vm->rsp[1], *vm->rsp);
                 break;
             case EXIT:
-                printf("exit(%lld) cycle = %lld\n", *vm->rsp, cycle);
+                printf("exit(%ld) cycle = %ld\n", *vm->rsp, cycle);
                 return *vm->rsp;
             default:
-                printf("unknown instruction:%lld\n", op);
+                printf("unknown instruction:%ld\n", op);
                 return -1;
         }
     }

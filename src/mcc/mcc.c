@@ -27,7 +27,7 @@ char *read_file(const char *filename, const size_t pool_size) {
 
     char *source = malloc(pool_size);
     if (source == NULL) {
-        printf("could not malloc(%lld) source area\n", pool_size);
+        printf("could not malloc(%ld) source area\n", pool_size);
         exit(-1);
     }
     ssize_t length;

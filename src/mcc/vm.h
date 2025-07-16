@@ -6,6 +6,7 @@
 #define MCC_VM_H
 
 #include <stdint.h>
+#include <stddef.h>
 
 // opcodes
 enum {

@@ -9,7 +9,7 @@
 
 #include "lexer.h"
 
-#define CAPACITY 1024
+#define CAPACITY 1024 // tokens 初始容量
 
 void analyse_token(Lexer *lexer);
 

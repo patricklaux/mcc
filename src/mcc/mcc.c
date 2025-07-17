@@ -71,7 +71,7 @@ int main(int argc, char **argv) {
     lexer_analyse(&lexer);
     lexer_free(&lexer);
 
-    // 语法分析，语义分析，代码生成
+    // 语法分析，代码生成
     Parser parser;
     parser_init(&parser, lexer.tokens, lexer.t_size, pool_size, src);
     parser_parse(&parser);

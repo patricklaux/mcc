@@ -119,7 +119,7 @@ void lexer_init(Lexer *lexer, char *source);
 void lexer_free(const Lexer *lexer);
 
 /**
- * @brief 分析源文件，生成词法单元序列
+ * @brief 扫描源文件并生成词法单元序列
  * @param lexer 词法分析器
  */
 void lexer_analyse(Lexer *lexer);

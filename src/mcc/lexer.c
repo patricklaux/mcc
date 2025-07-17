@@ -23,7 +23,7 @@ void skip_line(Lexer *lexer);
 // tokens 数组扩容
 void resize(Lexer *lexer);
 
-// 词法分析：生成 token
+// 分析并创建 token
 void analyse(Lexer *lexer);
 
 // 添加 token 到 tokens 数组
@@ -84,7 +84,7 @@ void skip_line(Lexer *lexer) {
 }
 
 /**
- * @brief 词法分析：分析并创建 token
+ * @brief 分析并创建 token
  * @param lexer 词法分析器
  */
 void analyse(Lexer *lexer) {

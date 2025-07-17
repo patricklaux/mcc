@@ -122,7 +122,7 @@ void parser_parse(Parser *parser) {
         }
         const int basetype = get_basetype(token); // 获取数据类型
         const int datatype = get_datatype(parser, basetype); // 叠加指针类型
-        Token *p1 = peek(parser, parser->t_index); // identifier
+        const Token *p1 = peek(parser, parser->t_index); // identifier
         assert(TK_ID, p1);
         const Token *p2 = peek(parser, parser->t_index + 1);
         if (p2->kind == TK_LEFT_PAREN) {

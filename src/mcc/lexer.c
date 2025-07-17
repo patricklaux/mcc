@@ -387,7 +387,7 @@ void add_token(Lexer *lexer, const TokenKind kind, const char *lexeme) {
  * @param lexer 词法分析器
  */
 void resize(Lexer *lexer) {
-    lexer->t_capacity = lexer->t_capacity / 2 * 3;
+    lexer->t_capacity = lexer->t_capacity * 2;
     Token *tokens = realloc(lexer->tokens, sizeof(Token) * lexer->t_capacity);
     if (tokens == NULL) {
         printf("tokens: realloc memory failed");

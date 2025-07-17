@@ -13,7 +13,7 @@
 // 计算字符串的哈希值
 int hash_string(const char *chars);
 
-// 添加系统调用到全局符号表
+// 添加系统函数到全局符号表
 void add_sys_calls(Parser *parser, const char *name, int value);
 
 // 断言当前词法单元类型是否为期望值
@@ -28,11 +28,11 @@ int get_basetype(const Token *token);
 // 获取数据类型
 int get_datatype(Parser *parser, int basetype);
 
-// 获取词法单元
-Token *peek_token(const Parser *parser, size_t index);
+// 获取当前词法单元
+Token *peek(const Parser *parser, size_t index);
 
-// 获取下一个词法单元
-Token *advance_token(Parser *parser);
+// 获取下一词法单元
+Token *advance(Parser *parser);
 
 // 解析枚举
 void parse_enum(Parser *parser);
@@ -43,7 +43,7 @@ void parse_global_variables(Parser *parser, int base_type, int data_type);
 // 解析函数
 void parse_function(Parser *parser, int datatype);
 
-// 解析枚举常量
+// 解析函数参数
 int parse_function_params(Parser *parser);
 
 // 解析函数体
@@ -115,23 +115,23 @@ void parser_free(const Parser *parser) {
  */
 void parser_parse(Parser *parser) {
     while (parser->t_index < parser->t_size) {
-        const Token *token = peek_token(parser, parser->t_index);
+        const Token *token = peek(parser, parser->t_index);
         if (token->kind == TK_ENUM) {
             parse_enum(parser); // 解析枚举常量
             continue;
         }
         const int basetype = get_basetype(token); // 获取数据类型
         const int datatype = get_datatype(parser, basetype); // 叠加指针类型
-        const Token *p1 = peek_token(parser, parser->t_index); // identifier
+        const Token *p1 = peek(parser, parser->t_index); // identifier
         assert(TK_ID, p1->kind);
-        const Token *p2 = peek_token(parser, parser->t_index + 1);
+        const Token *p2 = peek(parser, parser->t_index + 1);
         if (p2->kind == TK_LEFT_PAREN) {
             parse_function(parser, datatype); // 解析函数
         } else {
             parse_global_variables(parser, basetype, datatype); // 解析全局变量
         }
     }
-    print_src(parser);
+    print_src(parser); // 打印最后一行生成的指令
 }
 
 /**
@@ -193,12 +193,12 @@ void print_src(Parser *parser) {
 }
 
 /**
- * @brief 查看词法单元
+ * @brief 获取当前词法单元
  * @param parser 语法分析器
  * @param index 词法单元所在索引
  * @return 词法单元
  */
-Token *peek_token(const Parser *parser, const size_t index) {
+Token *peek(const Parser *parser, const size_t index) {
     return parser->tokens + index;
 }
 
@@ -207,8 +207,8 @@ Token *peek_token(const Parser *parser, const size_t index) {
  * @param parser 语法分析器
  * @return 下一词法单元
  */
-Token *advance_token(Parser *parser) {
-    Token *token = peek_token(parser, ++parser->t_index);
+Token *advance(Parser *parser) {
+    Token *token = peek(parser, ++parser->t_index);
     if (token->line > parser->line) {
         print_src(parser);
         parser->line = token->line;
@@ -223,9 +223,9 @@ Token *advance_token(Parser *parser) {
  * @return 下一词法单元
  */
 Token *consume(Parser *parser, const TokenKind expected) {
-    const Token *tk = peek_token(parser, parser->t_index);
+    const Token *tk = peek(parser, parser->t_index);
     assert(expected, tk->kind);
-    return advance_token(parser);
+    return advance(parser);
 }
 
 /**
@@ -271,7 +271,7 @@ int get_basetype(const Token *token) {
  */
 int get_datatype(Parser *parser, const int basetype) {
     int datatype = basetype;
-    while (advance_token(parser)->kind == TK_STAR) {
+    while (advance(parser)->kind == TK_STAR) {
         datatype += PTR;
     }
     return datatype;
@@ -332,9 +332,9 @@ void check_symbol(Symbol *symbols, const size_t size, const Token *token, const 
  * @param parser 语法分析器
  */
 void parse_enum(Parser *parser) {
-    const Token *token = advance_token(parser);
+    const Token *token = advance(parser);
     if (token->kind == TK_ID) {
-        advance_token(parser); // 跳过枚举名称
+        advance(parser); // 跳过枚举名称
     }
 
     int64_t i = 0;
@@ -346,18 +346,18 @@ void parse_enum(Parser *parser) {
         check_symbol(parser->g_symbols, parser->g_size, token, hash); // 检查是否有重复
         if (token->kind == TK_ASSIGN) {
             // like {a=10}
-            token = advance_token(parser);
+            token = advance(parser);
             if (token->kind != TK_NUMBER) {
                 printf("bad enum initializer:%d\n", token->kind);
                 exit(-1);
             }
             i = to_integer(token->lexeme);
-            token = advance_token(parser);
+            token = advance(parser);
         }
         parser->g_symbols[parser->g_size++] = (Symbol){hash, name, INT, ENUM, i};
         i++;
         if (token->kind == TK_COMMA) {
-            token = advance_token(parser);
+            token = advance(parser);
         }
     }
     consume(parser, TK_RIGHT_BRACE);
@@ -372,7 +372,7 @@ void parse_enum(Parser *parser) {
  */
 void parse_global_variables(Parser *parser, const int base_type, int data_type) {
     while (1) {
-        const Token *token = peek_token(parser, parser->t_index);
+        const Token *token = peek(parser, parser->t_index);
         assert(TK_ID, token->kind);
         const char *name = token->lexeme;
         const int hash = hash_string(name);
@@ -380,11 +380,11 @@ void parse_global_variables(Parser *parser, const int base_type, int data_type) 
         check_symbol(parser->g_symbols, parser->g_size, token, hash);
         parser->g_symbols[parser->g_size++] = (Symbol){hash, name, data_type, GLOBAL, data_index};
         parser->data += sizeof(int64_t);
-        token = advance_token(parser);
+        token = advance(parser);
         if (token->kind == TK_COMMA) {
             data_type = get_datatype(parser, base_type);
         } else if (token->kind == TK_SEMICOLON) {
-            advance_token(parser);
+            advance(parser);
             break;
         } else {
             printf("bad variable declaration:%d\n", token->kind);
@@ -399,7 +399,7 @@ void parse_global_variables(Parser *parser, const int base_type, int data_type) 
  * @param datatype 函数返回类型
  */
 void parse_function(Parser *parser, const int datatype) {
-    const Token *token = peek_token(parser, parser->t_index);
+    const Token *token = peek(parser, parser->t_index);
     const char *name = token->lexeme;
     const int hash = hash_string(name);
     int64_t *entry = parser->text + 1; // 函数入口地址
@@ -408,7 +408,7 @@ void parse_function(Parser *parser, const int datatype) {
     }
     check_symbol(parser->g_symbols, parser->g_size, token, hash);
     parser->g_symbols[parser->g_size++] = (Symbol){hash, name, datatype, FUNC, (int64_t) entry};
-    advance_token(parser);
+    advance(parser);
     // 解析参数，返回 bp 在栈中的相对位置
     const int bp_index = parse_function_params(parser);
     // 解析函数体
@@ -419,7 +419,7 @@ void parse_function(Parser *parser, const int datatype) {
 
 
 /**
- * @brief 解析函数
+ * @brief 解析函数参数
  * @param parser 语法分析器
  */
 int parse_function_params(Parser *parser) {
@@ -428,7 +428,7 @@ int parse_function_params(Parser *parser) {
     while (token->kind != TK_RIGHT_PAREN) {
         const int base_type = get_basetype(token); // 参数类型
         const int data_type = get_datatype(parser, base_type);
-        token = peek_token(parser, parser->t_index); // 参数名
+        token = peek(parser, parser->t_index); // 参数名
         assert(TK_ID, token->kind);
         const char *name = token->lexeme;
         const int hash = hash_string(name);
@@ -436,9 +436,9 @@ int parse_function_params(Parser *parser) {
         parser->l_symbols[parser->l_size++] = (Symbol){hash, name, data_type, LOCAL, i};
         ++i;
 
-        token = advance_token(parser);
+        token = advance(parser);
         if (token->kind == TK_COMMA) {
-            token = advance_token(parser);
+            token = advance(parser);
             if (token->kind == TK_RIGHT_PAREN) {
                 printf("line:%ld bad symbol %s\n", token->line, token->lexeme);
                 exit(-1); // 语法异常：逗号之后无参数
@@ -462,13 +462,13 @@ void parse_function_body(Parser *parser, const int bp_index) {
         const int base_type = get_basetype(token);
         while (token->kind != TK_SEMICOLON) {
             const int data_type = get_datatype(parser, base_type);
-            token = peek_token(parser, parser->t_index);
+            token = peek(parser, parser->t_index);
             assert(TK_ID, token->kind);
             const char *name = token->lexeme;
             const int hash = hash_string(name);
             check_symbol(parser->l_symbols, parser->l_size, token, hash);
             parser->l_symbols[parser->l_size++] = (Symbol){hash, name, data_type, LOCAL, ++i};
-            token = advance_token(parser);
+            token = advance(parser);
             if (token->kind != TK_COMMA && token->kind != TK_SEMICOLON) {
                 printf("line:%ld, bad variable declaration:%d\n", token->line, token->kind);
                 exit(-1);
@@ -481,7 +481,7 @@ void parse_function_body(Parser *parser, const int bp_index) {
     // 2. 解析语句
     while (token->kind != TK_RIGHT_BRACE) {
         parse_stmt(parser, bp_index);
-        token = peek_token(parser, parser->t_index);
+        token = peek(parser, parser->t_index);
     }
     consume(parser, TK_RIGHT_BRACE);
     *++parser->text = LEV;
@@ -494,10 +494,10 @@ void parse_function_body(Parser *parser, const int bp_index) {
  * @param bp_index bp 相对索引位置
  */
 void parse_stmt(Parser *parser, const int bp_index) {
-    const Token *tk = peek_token(parser, parser->t_index);
+    const Token *tk = peek(parser, parser->t_index);
     // if 语句
     if (tk->kind == TK_IF) {
-        advance_token(parser);
+        advance(parser);
         consume(parser, TK_LEFT_PAREN);
         parse_expr(parser, TK_ASSIGN, bp_index); // parse condition
         consume(parser, TK_RIGHT_PAREN);
@@ -505,9 +505,9 @@ void parse_stmt(Parser *parser, const int bp_index) {
         int64_t *branch = ++parser->text; // 保存跳转位置
 
         parse_stmt(parser, bp_index);
-        tk = peek_token(parser, parser->t_index);
+        tk = peek(parser, parser->t_index);
         if (tk->kind == TK_ELSE) {
-            advance_token(parser);
+            advance(parser);
             *branch = (int64_t) (parser->text + 3);
             *++parser->text = JMP;
             branch = ++parser->text;
@@ -519,7 +519,7 @@ void parse_stmt(Parser *parser, const int bp_index) {
     }
     // while 语句
     if (tk->kind == TK_WHILE) {
-        advance_token(parser);
+        advance(parser);
 
         int64_t *a = parser->text + 1; // 条件判断语句所在地址
 
@@ -539,7 +539,7 @@ void parse_stmt(Parser *parser, const int bp_index) {
     }
     // return 语句
     if (tk->kind == TK_RETURN) {
-        tk = advance_token(parser);
+        tk = advance(parser);
         if (tk->kind != TK_SEMICOLON) {
             parse_expr(parser, TK_ASSIGN, bp_index);
         }
@@ -549,17 +549,17 @@ void parse_stmt(Parser *parser, const int bp_index) {
     }
     // 语句块  { ... }
     if (tk->kind == TK_LEFT_BRACE) {
-        tk = advance_token(parser);
+        tk = advance(parser);
         while (tk->kind != TK_RIGHT_BRACE) {
             parse_stmt(parser, bp_index);
-            tk = peek_token(parser, parser->t_index);
+            tk = peek(parser, parser->t_index);
         }
         consume(parser, TK_RIGHT_BRACE);
         return;
     }
     // 空语句  ;
     if (tk->kind == TK_SEMICOLON) {
-        advance_token(parser);
+        advance(parser);
         return;
     }
     // 表达式  a=b
@@ -576,19 +576,19 @@ void parse_stmt(Parser *parser, const int bp_index) {
  * @param bp_index bp相对索引
  */
 void parse_expr(Parser *parser, const int level, const int bp_index) {
-    const Token *token = peek_token(parser, parser->t_index);
+    const Token *token = peek(parser, parser->t_index);
 
     // 一元表达式
     if (token->kind == TK_NUMBER) {
         const int64_t tk_val = to_integer(token->lexeme);
-        advance_token(parser);
+        advance(parser);
         *++parser->text = IMM;
         *++parser->text = tk_val;
         parser->expr_type = INT;
     } else if (token->kind == TK_STRING) {
         const int64_t index = (int64_t) parser->data; // 获取字符串存储的起始指针
         const char *lexeme = token->lexeme;
-        advance_token(parser);
+        advance(parser);
         // 复制字符串到 data
         while (*lexeme != 0) {
             if (*lexeme == '\\') {
@@ -610,7 +610,7 @@ void parse_expr(Parser *parser, const int level, const int bp_index) {
         parser->data = (char *) ((int64_t) parser->data + sizeof(int64_t) & -sizeof(int64_t));
         parser->expr_type = PTR;
     } else if (token->kind == TK_SIZEOF) {
-        advance_token(parser);
+        advance(parser);
         token = consume(parser, TK_LEFT_PAREN);
         const int basetype = get_basetype(token);
         parser->expr_type = get_datatype(parser, basetype);
@@ -621,7 +621,7 @@ void parse_expr(Parser *parser, const int level, const int bp_index) {
     } else if (token->kind == TK_ID) {
         const Token *id = token;
         const int hash = hash_string(id->lexeme);
-        token = advance_token(parser);
+        token = advance(parser);
         if (token->kind == TK_LEFT_PAREN) {
             // 函数：仅查找全局符号表
             const Symbol *symbol = find_symbol(parser->g_symbols, parser->g_size, id, hash);
@@ -629,16 +629,16 @@ void parse_expr(Parser *parser, const int level, const int bp_index) {
                 printf("line:%ld, undefined function %s\n", id->line, id->lexeme);
                 exit(-1);
             }
-            token = advance_token(parser);
+            token = advance(parser);
             // 函数：参数处理
             int64_t args_num = 0; // 参数个数
             while (token->kind != TK_RIGHT_PAREN) {
                 parse_expr(parser, TK_ASSIGN, bp_index);
                 *++parser->text = PUSH; // 参数入栈
                 args_num++;
-                token = peek_token(parser, parser->t_index);
+                token = peek(parser, parser->t_index);
                 if (token->kind == TK_COMMA) {
-                    token = advance_token(parser);
+                    token = advance(parser);
                 }
             }
             consume(parser, TK_RIGHT_PAREN);
@@ -687,7 +687,7 @@ void parse_expr(Parser *parser, const int level, const int bp_index) {
             }
         }
     } else if (token->kind == TK_LEFT_PAREN) {
-        token = advance_token(parser);
+        token = advance(parser);
         if (token->kind == TK_INT || token->kind == TK_CHAR) {
             // 类型转换
             const int basetype = get_basetype(token);
@@ -702,19 +702,19 @@ void parse_expr(Parser *parser, const int level, const int bp_index) {
         }
     } else if (token->kind == TK_STAR) {
         // 解引用 *addr
-        advance_token(parser);
+        advance(parser);
         parse_expr(parser, TK_INC, bp_index);
         if (parser->expr_type >= PTR) {
             parser->expr_type -= PTR;
         } else {
-            token = peek_token(parser, parser->t_index);
+            token = peek(parser, parser->t_index);
             printf("%ld: bad dereference\n", token->line);
             exit(-1);
         }
         *++parser->text = parser->expr_type == CHAR ? LC : LI;
     } else if (token->kind == TK_AND) {
         // 取址 &var
-        token = advance_token(parser);
+        token = advance(parser);
         parse_expr(parser, TK_INC, bp_index);
         if (*parser->text == LC || *parser->text == LI) {
             parser->text--;
@@ -725,7 +725,7 @@ void parse_expr(Parser *parser, const int level, const int bp_index) {
         parser->expr_type += PTR;
     } else if (token->kind == TK_NOT) {
         // 逻辑非 !var
-        advance_token(parser);
+        advance(parser);
         parse_expr(parser, TK_INC, bp_index);
         *++parser->text = PUSH;
         *++parser->text = IMM;
@@ -734,7 +734,7 @@ void parse_expr(Parser *parser, const int level, const int bp_index) {
         parser->expr_type = INT;
     } else if (token->kind == TK_TILDE) {
         // 位非 ~var
-        advance_token(parser);
+        advance(parser);
         parse_expr(parser, TK_INC, bp_index);
         *++parser->text = PUSH;
         *++parser->text = IMM;
@@ -743,16 +743,16 @@ void parse_expr(Parser *parser, const int level, const int bp_index) {
         parser->expr_type = INT;
     } else if (token->kind == TK_PLUS) {
         // 正号 +var
-        advance_token(parser);
+        advance(parser);
         parse_expr(parser, TK_INC, bp_index);
         parser->expr_type = INT;
     } else if (token->kind == TK_MINUS) {
         // 负号 -var
-        token = advance_token(parser);
+        token = advance(parser);
         if (token->kind == TK_NUMBER) {
             *++parser->text = IMM;
             *++parser->text = -to_integer(token->lexeme);
-            advance_token(parser);
+            advance(parser);
         } else {
             *++parser->text = IMM;
             *++parser->text = -1;
@@ -764,7 +764,7 @@ void parse_expr(Parser *parser, const int level, const int bp_index) {
     } else if (token->kind == TK_INC || token->kind == TK_DEC) {
         // 递增递减（前缀形式） ++var 或 --var
         const int kind = token->kind;
-        token = advance_token(parser);
+        token = advance(parser);
         parse_expr(parser, TK_INC, bp_index);
         // 1.先将 rax 中的地址入栈
         // 2.从地址中取值存入 rax
@@ -791,14 +791,14 @@ void parse_expr(Parser *parser, const int level, const int bp_index) {
     const int tmp = parser->expr_type;
     // 二元表达式
     while (1) {
-        token = peek_token(parser, parser->t_index);
+        token = peek(parser, parser->t_index);
         if (token->kind < level) {
             return;
         }
         // 根据运算符的优先级，进行递归解析
         if (token->kind == TK_ASSIGN) {
             // 赋值表达式 var = expr;
-            token = advance_token(parser);
+            token = advance(parser);
             if (*parser->text == LC || *parser->text == LI) {
                 *parser->text = PUSH; // save the lvalue's pointer
             } else {
@@ -811,13 +811,13 @@ void parse_expr(Parser *parser, const int level, const int bp_index) {
             *++parser->text = parser->expr_type == CHAR ? SC : SI;
         } else if (token->kind == TK_CONDITION) {
             // 条件表达式 expr ? a : b;
-            advance_token(parser);
+            advance(parser);
             *++parser->text = JZ;
             int64_t *addr = ++parser->text;
             parse_expr(parser, TK_ASSIGN, bp_index);
-            token = peek_token(parser, parser->t_index);
+            token = peek(parser, parser->t_index);
             if (token->kind == TK_COLON) {
-                advance_token(parser);
+                advance(parser);
             } else {
                 printf("%ld: missing colon in conditional\n", token->line);
                 exit(-1);
@@ -829,7 +829,7 @@ void parse_expr(Parser *parser, const int level, const int bp_index) {
             *addr = (int64_t) (parser->text + 1);
         } else if (token->kind == TK_LOR) {
             // 逻辑或
-            advance_token(parser);
+            advance(parser);
             *++parser->text = JNZ;
             int64_t *addr = ++parser->text;
             parse_expr(parser, TK_LAND, bp_index);
@@ -837,7 +837,7 @@ void parse_expr(Parser *parser, const int level, const int bp_index) {
             parser->expr_type = INT;
         } else if (token->kind == TK_LAND) {
             // 逻辑与
-            advance_token(parser);
+            advance(parser);
             *++parser->text = JZ;
             int64_t *addr = ++parser->text;
             parse_expr(parser, TK_OR, bp_index);
@@ -845,84 +845,84 @@ void parse_expr(Parser *parser, const int level, const int bp_index) {
             parser->expr_type = INT;
         } else if (token->kind == TK_OR) {
             // 位或
-            advance_token(parser);
+            advance(parser);
             *++parser->text = PUSH;
             parse_expr(parser, TK_XOR, bp_index);
             *++parser->text = OR;
             parser->expr_type = INT;
         } else if (token->kind == TK_XOR) {
             // 位异或
-            advance_token(parser);
+            advance(parser);
             *++parser->text = PUSH;
             parse_expr(parser, TK_AND, bp_index);
             *++parser->text = XOR;
             parser->expr_type = INT;
         } else if (token->kind == TK_AND) {
             // 位与
-            advance_token(parser);
+            advance(parser);
             *++parser->text = PUSH;
             parse_expr(parser, TK_EQUAL, bp_index);
             *++parser->text = AND;
             parser->expr_type = INT;
         } else if (token->kind == TK_EQUAL) {
             // 等于
-            advance_token(parser);
+            advance(parser);
             *++parser->text = PUSH;
             parse_expr(parser, TK_NE, bp_index);
             *++parser->text = EQ;
             parser->expr_type = INT;
         } else if (token->kind == TK_NE) {
             // 不等于
-            advance_token(parser);
+            advance(parser);
             *++parser->text = PUSH;
             parse_expr(parser, TK_LT, bp_index);
             *++parser->text = NE;
             parser->expr_type = INT;
         } else if (token->kind == TK_LT) {
             // 小于
-            advance_token(parser);
+            advance(parser);
             *++parser->text = PUSH;
             parse_expr(parser, TK_SHL, bp_index);
             *++parser->text = LT;
             parser->expr_type = INT;
         } else if (token->kind == TK_GT) {
             // 大于
-            advance_token(parser);
+            advance(parser);
             *++parser->text = PUSH;
             parse_expr(parser, TK_SHL, bp_index);
             *++parser->text = GT;
             parser->expr_type = INT;
         } else if (token->kind == TK_LE) {
             // 小于等于
-            advance_token(parser);
+            advance(parser);
             *++parser->text = PUSH;
             parse_expr(parser, TK_SHL, bp_index);
             *++parser->text = LE;
             parser->expr_type = INT;
         } else if (token->kind == TK_GE) {
             // 大于等于
-            advance_token(parser);
+            advance(parser);
             *++parser->text = PUSH;
             parse_expr(parser, TK_SHL, bp_index);
             *++parser->text = GE;
             parser->expr_type = INT;
         } else if (token->kind == TK_SHL) {
             // 左位移 var<<x
-            advance_token(parser);
+            advance(parser);
             *++parser->text = PUSH;
             parse_expr(parser, TK_PLUS, bp_index);
             *++parser->text = SHL;
             parser->expr_type = INT;
         } else if (token->kind == TK_SHR) {
             // 右位移 var>>x
-            advance_token(parser);
+            advance(parser);
             *++parser->text = PUSH;
             parse_expr(parser, TK_PLUS, bp_index);
             *++parser->text = SHR;
             parser->expr_type = INT;
         } else if (token->kind == TK_PLUS) {
             // 加法
-            advance_token(parser);
+            advance(parser);
             *++parser->text = PUSH;
             parse_expr(parser, TK_STAR, bp_index);
 
@@ -937,7 +937,7 @@ void parse_expr(Parser *parser, const int level, const int bp_index) {
             *++parser->text = ADD;
         } else if (token->kind == TK_MINUS) {
             // 减法
-            advance_token(parser);
+            advance(parser);
             *++parser->text = PUSH;
             parse_expr(parser, TK_STAR, bp_index);
             if (tmp > PTR && tmp == parser->expr_type) {
@@ -963,21 +963,21 @@ void parse_expr(Parser *parser, const int level, const int bp_index) {
             }
         } else if (token->kind == TK_STAR) {
             // 乘法
-            advance_token(parser);
+            advance(parser);
             *++parser->text = PUSH;
             parse_expr(parser, TK_INC, bp_index);
             *++parser->text = MUL;
             parser->expr_type = tmp;
         } else if (token->kind == TK_SLASH) {
             // 除法
-            advance_token(parser);
+            advance(parser);
             *++parser->text = PUSH;
             parse_expr(parser, TK_INC, bp_index);
             *++parser->text = DIV;
             parser->expr_type = tmp;
         } else if (token->kind == TK_MOD) {
             // 求余
-            advance_token(parser);
+            advance(parser);
             *++parser->text = PUSH;
             parse_expr(parser, TK_INC, bp_index);
             *++parser->text = MOD;
@@ -1004,10 +1004,10 @@ void parse_expr(Parser *parser, const int level, const int bp_index) {
             *++parser->text = IMM;
             *++parser->text = parser->expr_type > PTR ? sizeof(int64_t) : sizeof(char);
             *++parser->text = token->kind == TK_INC ? SUB : ADD;
-            advance_token(parser);
+            advance(parser);
         } else if (token->kind == TK_LEFT_BRACKET) {
             // 数组
-            advance_token(parser);
+            advance(parser);
             *++parser->text = PUSH;
             parse_expr(parser, TK_ASSIGN, bp_index);
             token = consume(parser, TK_RIGHT_BRACKET);

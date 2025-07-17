@@ -9,7 +9,6 @@
 
 // token 类型
 typedef enum {
-    TK_COMMENT, // //
     TK_COMMA, // ,
     TK_SEMICOLON, // ;
 

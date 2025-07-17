@@ -32,7 +32,7 @@ gcc -o mcc ./src/mcc/lexer.c ./src/mcc/parser.c ./src/mcc/vm.c ./src/mcc/mcc.c
 
 
 #### 主流程
-![image-20250717123518810](images/README/image-20250717123518810.png)
+![主流程](doc/images/main_flow.png)
 
 
 

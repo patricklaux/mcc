@@ -17,7 +17,7 @@ int hash_string(const char *chars);
 void add_sys_calls(Parser *parser, const char *name, int value);
 
 // 断言当前词法单元类型是否为期望值
-void assert(TokenKind expected, TokenKind actual);
+void assert(TokenKind expected, const Token *token);
 
 // 打印生成的指令
 void print_src(Parser *parser);
@@ -122,8 +122,8 @@ void parser_parse(Parser *parser) {
         }
         const int basetype = get_basetype(token); // 获取数据类型
         const int datatype = get_datatype(parser, basetype); // 叠加指针类型
-        const Token *p1 = peek(parser, parser->t_index); // identifier
-        assert(TK_ID, p1->kind);
+        Token *p1 = peek(parser, parser->t_index); // identifier
+        assert(TK_ID, p1);
         const Token *p2 = peek(parser, parser->t_index + 1);
         if (p2->kind == TK_LEFT_PAREN) {
             parse_function(parser, datatype); // 解析函数
@@ -161,11 +161,11 @@ void add_sys_calls(Parser *parser, const char *name, const int value) {
 /**
  * @brief 词法单元类型断言
  * @param expected 期望类型
- * @param actual 实际类型
+ * @param token 实际类型
  */
-void assert(const TokenKind expected, const TokenKind actual) {
-    if (expected != actual) {
-        printf("expected: %d, but got %d\n", expected, actual);
+void assert(const TokenKind expected, const Token *token) {
+    if (expected != token->kind) {
+        printf("line:%ld, expected: %d, but got %d\n", token->line, expected, token->kind);
         exit(-1);
     }
 }
@@ -224,7 +224,7 @@ Token *advance(Parser *parser) {
  */
 Token *consume(Parser *parser, const TokenKind expected) {
     const Token *tk = peek(parser, parser->t_index);
-    assert(expected, tk->kind);
+    assert(expected, tk);
     return advance(parser);
 }
 
@@ -340,7 +340,7 @@ void parse_enum(Parser *parser) {
     int64_t i = 0;
     token = consume(parser, TK_LEFT_BRACE);
     while (token->kind != TK_RIGHT_BRACE) {
-        assert(TK_ID, token->kind);
+        assert(TK_ID, token);
         const char *name = token->lexeme;
         const int hash = hash_string(name);
         check_symbol(parser->g_symbols, parser->g_size, token, hash); // 检查是否有重复
@@ -373,7 +373,7 @@ void parse_enum(Parser *parser) {
 void parse_global_variables(Parser *parser, const int base_type, int data_type) {
     while (1) {
         const Token *token = peek(parser, parser->t_index);
-        assert(TK_ID, token->kind);
+        assert(TK_ID, token);
         const char *name = token->lexeme;
         const int hash = hash_string(name);
         const int64_t data_index = (int64_t) parser->data; // 全局变量静态存储位置
@@ -429,7 +429,7 @@ int parse_function_params(Parser *parser) {
         const int base_type = get_basetype(token); // 参数类型
         const int data_type = get_datatype(parser, base_type);
         token = peek(parser, parser->t_index); // 参数名
-        assert(TK_ID, token->kind);
+        assert(TK_ID, token);
         const char *name = token->lexeme;
         const int hash = hash_string(name);
         check_symbol(parser->l_symbols, parser->l_size, token, hash);
@@ -463,7 +463,7 @@ void parse_function_body(Parser *parser, const int bp_index) {
         while (token->kind != TK_SEMICOLON) {
             const int data_type = get_datatype(parser, base_type);
             token = peek(parser, parser->t_index);
-            assert(TK_ID, token->kind);
+            assert(TK_ID, token);
             const char *name = token->lexeme;
             const int hash = hash_string(name);
             check_symbol(parser->l_symbols, parser->l_size, token, hash);

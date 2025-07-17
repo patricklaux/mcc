@@ -397,7 +397,7 @@ void resize(Lexer *lexer) {
 }
 
 /**
- * @brief 判断是否是关键字，如果是则添加一个 token
+ * @brief 判断是否为关键字，如果是则添加一个 token
  * @param lexer 词法分析器
  * @param keyword 关键字
  * @param length 长度
@@ -409,7 +409,7 @@ int keyword(Lexer *lexer, const char *keyword, const int length, const TokenKind
         const char pc = lexer->source[lexer->s_index + length];
         if (!is_digit(pc) && !is_alpha(pc)) {
             add_token(lexer, type, NULL);
-            lexer->s_index += (length - 1);
+            lexer->s_index += length - 1;
             return 1;
         }
     }

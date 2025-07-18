@@ -332,6 +332,7 @@ void check_symbol(Symbol *symbols, const size_t size, const Token *token, const 
  * @param parser 语法分析器
  */
 void parse_enum(Parser *parser) {
+    // enum [id]{ A, B = 8, C }
     const Token *token = advance(parser);
     if (token->kind == TK_ID) {
         advance(parser); // 跳过枚举名称
@@ -345,7 +346,6 @@ void parse_enum(Parser *parser) {
         const int hash = hash_string(name);
         check_symbol(parser->g_symbols, parser->g_size, token, hash); // 检查是否有重复
         if (token->kind == TK_ASSIGN) {
-            // like {a=10}
             token = advance(parser);
             if (token->kind != TK_NUMBER) {
                 printf("bad enum initializer:%d\n", token->kind);

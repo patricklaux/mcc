@@ -37,7 +37,7 @@ typedef struct {
     Token *tokens; // 词法分析结果：Token 序列
     size_t t_size; // 词法分析结果：Token 数量
     size_t t_index; // 当前读取的 Token 的索引
-    int64_t *l_text; // 最后代码打印位置
+    int64_t *l_text; // 代码段最后打印位置
     int64_t *o_text; // 代码段的原始指针（用以最后释放内存，请勿直接操作此指针）
     int64_t *text; // 代码段：存储生成的指令
     char *o_data; // 数据段的原始指针（用以最后释放内存，请勿直接操作此指针）
@@ -48,8 +48,8 @@ typedef struct {
     Symbol *l_symbols; // 局部符号表
     size_t l_size; // 局部符号表：符号数量
     int expr_type; // 表达式类型（仅用于解析表达式）
-    size_t line; // 当前行号
-    int src; // 是否打印字节码
+    size_t line; // 当前行号（记录生成的指令对应的源代码行数，用以打印输出）
+    int src; // 是否打印指令
 } Parser;
 
 /**

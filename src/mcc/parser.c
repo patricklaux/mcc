@@ -28,7 +28,7 @@ int get_basetype(const Token *token);
 // 获取数据类型
 int get_datatype(Parser *parser, int basetype);
 
-// 获取当前词法单元
+// 获取指定索引的词法单元
 Token *peek(const Parser *parser, size_t index);
 
 // 获取下一词法单元
@@ -193,7 +193,7 @@ void print_src(Parser *parser) {
 }
 
 /**
- * @brief 获取当前词法单元
+ * @brief 获取指定索引的词法单元
  * @param parser 语法分析器
  * @param index 词法单元所在索引
  * @return 词法单元

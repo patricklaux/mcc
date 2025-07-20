@@ -93,8 +93,8 @@ void parser_init(Parser *parser, Token *tokens, const size_t t_size,
     add_sys_calls(parser, "exit", EXIT);
 }
 
-void parser_free(const Parser *parser) {
-    if (parser->tokens) {
+void parser_free(Parser *parser) {
+    if (parser->tokens != NULL) {
         for (size_t i = 0; i < parser->t_size; i++) {
             Token token = parser->tokens[i];
             if (token.lexeme != NULL) {
@@ -103,9 +103,16 @@ void parser_free(const Parser *parser) {
             }
         }
         free(parser->tokens);
+        parser->tokens = NULL;
     }
-    if (parser->g_symbols) free(parser->g_symbols);
-    if (parser->l_symbols) free(parser->l_symbols);
+    if (parser->g_symbols != NULL) {
+        free(parser->g_symbols);
+        parser->g_symbols = NULL;
+    }
+    if (parser->l_symbols != NULL) {
+        free(parser->l_symbols);
+        parser->l_symbols = NULL;
+    }
 }
 
 

@@ -50,10 +50,19 @@ void vm_init(VM *vm, int64_t *o_text, char *o_data,
     *--vm->rsp = (int64_t) tmp;
 }
 
-void vm_free(const VM *vm) {
-    if (vm->stack != NULL) free(vm->stack);
-    if (vm->o_text != NULL) free(vm->o_text);
-    if (vm->o_data != NULL) free(vm->o_data);
+void vm_free(VM *vm) {
+    if (vm->stack != NULL) {
+        free(vm->stack);
+        vm->stack = NULL;
+    }
+    if (vm->o_text != NULL) {
+        free(vm->o_text);
+        vm->o_text = NULL;
+    }
+    if (vm->o_data != NULL) {
+        free(vm->o_data);
+        vm->o_data = NULL;
+    }
 }
 
 int64_t vm_run(VM *vm) {

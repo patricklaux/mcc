@@ -82,7 +82,7 @@ void vm_init(VM *vm, int64_t *o_text, char *o_data, size_t size, int64_t *main, 
  * 释放虚拟机
  * @param vm 虚拟机
  */
-void vm_free(const VM *vm);
+void vm_free(VM *vm);
 
 /**
  * 运行虚拟机

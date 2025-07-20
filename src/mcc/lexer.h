@@ -116,7 +116,7 @@ void lexer_init(Lexer *lexer, char *source);
  * @details 释放：源文件文本；不释放：词法单元序列（语法分析器运行时必需）
  * @param lexer 词法分析器
  */
-void lexer_free(const Lexer *lexer);
+void lexer_free(Lexer *lexer);
 
 /**
  * @brief 扫描源文件并生成词法单元序列

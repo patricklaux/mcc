@@ -67,7 +67,7 @@ void parser_init(Parser *parser, Token *tokens, size_t t_size, size_t pool_size,
  * @details 释放：词法单元序列，全局符号表，局部符号表；不释放：代码段，数据段（虚拟机运行时必需）
  * @param parser 语法分析器
  */
-void parser_free(const Parser *parser);
+void parser_free(Parser *parser);
 
 /**
  * @brief 解析 token 序列，并生成字节码

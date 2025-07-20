@@ -58,8 +58,11 @@ void lexer_init(Lexer *lexer, char *source) {
     }
 }
 
-void lexer_free(const Lexer *lexer) {
-    if (lexer->source != NULL) free(lexer->source);
+void lexer_free(Lexer *lexer) {
+    if (lexer->source != NULL) {
+        free(lexer->source);
+        lexer->source = NULL;
+    }
 }
 
 void lexer_analyse(Lexer *lexer) {

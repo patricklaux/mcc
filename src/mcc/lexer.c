@@ -74,7 +74,7 @@ void lexer_analyse(Lexer *lexer) {
 }
 
 /**
- * 跳过当前行
+ * @brief 跳过当前行
  * @param lexer 词法分析器
  */
 void skip_line(Lexer *lexer) {

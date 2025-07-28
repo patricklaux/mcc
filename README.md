@@ -41,7 +41,7 @@ gcc -o mcc ./src/mcc/lexer.c ./src/mcc/parser.c ./src/mcc/vm.c ./src/mcc/mcc.c
 
 #### 2.1.1. 主流程
 
-![主流程](doc/images/main_flow.png)
+![主流程](doc/images/mcc-main-flow.png)
 
 mcc 将整个编译运行过程拆分为 4 个主要文件，具体流程和相应功能如上图所示。
 
@@ -55,7 +55,7 @@ mcc 将整个编译运行过程拆分为 4 个主要文件，具体流程和相�
 
 整个编译程序，语法分析(parser) 的逻辑相对复杂，所以再画两张流程图。
 
-![image-20250718164548246](doc/images/parser_flow.png)
+![image-20250718164548246](doc/images/mcc-parser-flow.png)
 
 对于一个 C 语言文件，最外层可能会有预处理语句(#)，注释(//)，枚举(enum)，结构体(struct)，联合体(union)，全局变量(int, char, ……)，函数(void, int, char,……) 等。
 
@@ -67,7 +67,7 @@ mcc 对于预处理语句和注释是直接忽略的，在词法分析环节只�
 
 **子流程：解析函数体**
 
-![image-20250718164657224](doc/images/func_body_flow.png)
+![image-20250718164657224](doc/images/mcc-func-body-flow.png)
 
 函数体内部，先循环解析全部局部变量声明，然后才开始解析语句。因此，所有局部变量声明必须写在函数体的顶部。
 
